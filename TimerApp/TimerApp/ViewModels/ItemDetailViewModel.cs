@@ -1,18 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Windows.Input;
 using TimerApp.Models;
+using TimerApp.Services;
 using Xamarin.Forms;
 
 namespace TimerApp.ViewModels
 {
     public class ItemDetailViewModel : BaseViewModel
     {
-        private enum StatusType
-        {
-            Running,
-            Paused,
-            Stopped
-        };
+        Timer timer;
+
+        AutoResetEvent autoEvent = new AutoResetEvent(false);
+
+        bool started;
 
         StatusType status = StatusType.Stopped;
         private StatusType Status
@@ -65,8 +67,13 @@ namespace TimerApp.ViewModels
             set { SetProperty(ref isStopEnabled, value); }
         }
 
-        public int RemainingTime { get; set; }
-
+        int remainingTime;
+        public int RemainingTime
+        {
+            get { return remainingTime; }
+            set { SetProperty(ref remainingTime, value); }
+        }
+    
         public ItemDetailViewModel(Item item = null)
         {
             Title = item?.Text;
@@ -75,27 +82,46 @@ namespace TimerApp.ViewModels
             StopCommand = new Command(Stop);
             PauseCommand = new Command(Pause);
             Status = StatusType.Stopped;
+            RemainingTime = 10;
+
+            TimerService.Instance.Status += Instance_Status;
+            TimerService.Instance.Update += Instance_Update;
+        }
+
+        private void Instance_Update(int timerIndex, int timeRemaining)
+        {
+            RemainingTime = timeRemaining;
+        }
+
+        private void Instance_Status(StatusType obj)
+        {
+            Status = obj;
         }
 
         public ICommand RunCommand { get; private set; }
 
         public void Run()
         {
-             Status = StatusType.Running;
+            if (Status == StatusType.Stopped)
+                TimerService.Instance.Start(new List<int>() { Item.IntervalTime });
+            else
+                TimerService.Instance.Continue();            
         }
 
         public ICommand StopCommand { get; private set; }
 
         public void Stop()
         {
-             Status = StatusType.Stopped;
+            TimerService.Instance.Stop();
+            
+            RemainingTime = 0;
         }
 
         public ICommand PauseCommand { get; private set; }
 
         public void Pause()
         {
-            Status = StatusType.Paused;
+            TimerService.Instance.Pause();
         }
     }
 }

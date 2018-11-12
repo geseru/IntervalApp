@@ -10,8 +10,10 @@
         <Label Text="{Binding Item.Description}" FontSize="Small"/>
         <Label Text="Interval time:" FontSize="Medium" />
         <Label Text="{Binding Item.IntervalTime}" FontSize="Small"/>
-     
-      <Grid>
+        <Label Text="Time Remaining:" FontSize="Medium" />
+        <Label Text="{Binding RemainingTime}" FontSize="Small"/>
+
+        <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="*" />
